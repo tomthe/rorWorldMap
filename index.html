@@ -11,14 +11,15 @@
       The data comes from <a href="https://ror.org">ROR</a>, a registry of research organisations
       and <a href="http://openalex.org/">OpenAlex</a>. The visualisation is built with <a href="https://github.com/nomic-ai/deepscatter">deepscatter</a>.
     </p>
+    <p>Unfortunately, the underlying library does not work in the best browser: Firefox! You have to use Chrome :(</p>
     <div id="controls" style="z-index: 99; position: fixed">
       <input type="range" min="0" max=".5" step=".01" id="jitter" value=".05" />
       <button id="flip">color by work_count</button>
       <!-- <button id="html">Change tooltip HTML</button>
       <button id="html">Change tooltip HTML</button> -->
       <button id="jitterplus">shake it!</button>
-      <button id="jitterminus">no jitter</button>
-      <button id="changelink">change link</button>
+      <button id="jitterminus">stop shaking!</button>
+      <button id="changelink">change links to OpenAlex</button>
       <pre id="ident"></pre>
     </div>
     <div id="deepscatter"></div>
@@ -29,7 +30,7 @@
       dt {
         float: left;
         clear: left;
-        width: 90px;
+        width: 120px;
         font-weight: bold;
         color: rgb(128, 19, 0);
       }
@@ -41,24 +42,25 @@
       dd {
         margin: 0 0 0 80px;
         padding: 0 0 0.5em 0;
-        width: 180px;
+        width: 195px;
+        line-height: 90%;
       }
       
       #deepscatter {
         /* width: 100vw; */
         height: 80vh;
         /* height: 90%; */
-        min-height: -moz-available; /* WebKit-based browsers will ignore this. */
-        min-height: -webkit-fill-available; /* Mozilla-based browsers will ignore this. */
+        /* min-height: -moz-available; WebKit-based browsers will ignore this. */
+        /* min-height: -webkit-fill-available; Mozilla-based browsers will ignore this. */
         /* min-height: fill-available; */
       }
     </style>
   </head>
   
   <script type="module">
-    import Scatterplot from './src/deepscatter';
+    import Scatterplot from './dist/deepscatter.js';
     // import { select } from 'd3-selection';
-    window.select = select; // For the click function below.
+    // window.select = select; // For the click function below.
     let jitterval = 0.006;
     const prefs = {
       source_url: '/tiles3',
@@ -152,7 +154,7 @@
     scatterplot.on_zoom = (transform) => console.log('zoomed:', transform)
   
     let cycle = 0;
-    document.getElementById('#jitter').addEventListener('change', () => {
+    document.getElementById('jitter').addEventListener('change', () => {
       scatterplot.plotAPI({
         encoding: {
           jitter_radius: {
@@ -164,11 +166,11 @@
     });
     let weird = false;
 
-    document.getElementById('html').addEventListener('click', () => {
-      scatterplot.tooltip_html = (datum) => {
-        return `This is point number <span style="color:blue">${datum.ix}</span>`;
-      };
-    });
+    // document.getElementById('html').addEventListener('click', () => {
+    //   scatterplot.tooltip_html = (datum) => {
+    //     return `This is point number <span style="color:blue">${datum.ix}</span>`;
+    //   };
+    // });
     document.getElementById('jitterplus').addEventListener('click', () => {
       jitterval = jitterval + 0.02;
       let opt = {
@@ -180,7 +182,7 @@
         },
       };
     });
-    document.getElementById('#jitterminus').addEventListener('click', () => {
+    document.getElementById('jitterminus').addEventListener('click', () => {
       jitterval = 0.001;
       scatterplot.plotAPI({
         encoding: {
