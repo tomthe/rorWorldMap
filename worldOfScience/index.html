@@ -1,0 +1,235 @@
+<style>
+    .ttooltip {
+      z-index: 99;
+    }
+  </style>
+  
+  <body>
+    <h1>Every Research Institution</h1>
+    <p>Hover over a point to see the institution's name. Click to go to the ROR page.</p>
+    <p>This map shows the positions of almost every one of 100000 organisations that has ever published a paper.
+      The data comes from <a href="https://ror.org">ROR</a>, a registry of research organisations
+      and <a href="http://openalex.org/">OpenAlex</a>. The visualisation is built with <a href="https://github.com/nomic-ai/deepscatter">deepscatter</a>.
+    </p>
+    <div id="controls" style="z-index: 99; position: fixed">
+      <input type="range" min="0" max=".5" step=".01" id="jitter" value=".05" />
+      <button id="flip">color by work_count</button>
+      <!-- <button id="html">Change tooltip HTML</button>
+      <button id="html">Change tooltip HTML</button> -->
+      <button id="jitterplus">shake it!</button>
+      <button id="jitterminus">no jitter</button>
+      <button id="changelink">change link</button>
+      <pre id="ident"></pre>
+    </div>
+    <div id="deepscatter"></div>
+  </body>
+  
+  <head>
+    <style>
+      dt {
+        float: left;
+        clear: left;
+        width: 90px;
+        font-weight: bold;
+        color: rgb(128, 19, 0);
+      }
+  
+      dt::after {
+        content: ':';
+      }
+  
+      dd {
+        margin: 0 0 0 80px;
+        padding: 0 0 0.5em 0;
+        width: 180px;
+      }
+      
+      #deepscatter {
+        /* width: 100vw; */
+        height: 80vh;
+        /* height: 90%; */
+        min-height: -moz-available; /* WebKit-based browsers will ignore this. */
+        min-height: -webkit-fill-available; /* Mozilla-based browsers will ignore this. */
+        /* min-height: fill-available; */
+      }
+    </style>
+  </head>
+  
+  <script type="module">
+    import Scatterplot from './src/deepscatter';
+    import { select } from 'd3-selection';
+    window.select = select; // For the click function below.
+    let jitterval = 0.006;
+    const prefs = {
+      source_url: '/tiles3',
+      max_points: 10000, // a full cap.
+      alpha: 5, // Target saturation for the full page.
+      zoom_balance: 0.17, // Rate at which points increase size. https://observablehq.com/@bmschmidt/zoom-strategies-for-huge-scatterplots-with-three-js
+      point_size: 2, // Default point size before application of size scaling
+      background_color: '#EEEDDE',
+      // click_function: "select('#ident').html(JSON.stringify(datum, undefined, 2))",
+      click_function: 'window.open("https://ror.org/" + datum.rorid1)',
+      
+      // click_function: 'window.open(datum.url, "_blank")',
+      encoding: {
+        color: {
+          field: "avg_pub_year",
+          range: 'YlGnBu',
+          domain: [2002,2017],
+        },
+        x: {
+          field: 'x',
+          transform: 'literal',
+        },
+        jitter_radius: {
+          method: 'uniform',
+          constant: 0.01,
+        },
+        y: {
+          field: 'y',
+          transform: 'literal',
+        },
+        size: {
+          field: 'work_count',
+          transform: 'sqrt',
+          domain: [0, 200000],
+          range: [1, 14],
+        },
+        jitter_radius: {
+          constant: jitterval,
+          method: 'normal'
+        }
+      },
+    };
+    //list of ids 1 - 100000
+    var ids_1 = [];
+    var ids_2 = [];
+    for (var i = 1; i < 500000; i++) {
+      ids_1.push(i.toString());
+    }
+  
+    //list of ids 1 - 20000 increment by 2
+    for (var i = 1; i < 20000; i++) {
+      ids_2.push(i.toString());
+    }
+    const colors = [
+      //    JSON.parse(JSON.stringify(prefs.encoding.color)),
+      {
+          field: "avg_pub_year",
+          range: 'YlGnBu',
+          domain: [2002,2017],
+        },
+        {
+        field: 'work_count',
+        range: 'ylorrd',
+        domain: [20,20000],
+      },
+      {
+        field: 'work_count',
+        range: 'YlGnBu',
+        domain: [40,15000],
+      },
+      {
+        field: 'author_count',
+        range: 'YlGnBu',
+        domain: [20,40000],
+      },
+      {
+        field: 'avg_pub_year',
+        range: 'ylorrd',
+        domain: [2002, 2017]
+      },
+    ];
+  
+    const scatterplot = new Scatterplot('#deepscatter');
+    scatterplot.plotAPI(prefs).then((d) => scatterplot.plotAPI(prefs));
+    window.plot = scatterplot; // For debugging
+    console.log(scatterplot);
+    console.log(scatterplot.database);
+    // Simple animation demonstration.
+  
+    // In practice, you might transform an external annotations layer using this
+    scatterplot.on_zoom = (transform) => console.log('zoomed:', transform)
+  
+    let cycle = 0;
+    select('#jitter').on('change', (event) => {
+      scatterplot.plotAPI({
+        encoding: {
+          jitter_radius: {
+            method: 'uniform',
+            constant: +event.target.value,
+          },
+        },
+      });
+    });
+    let weird = false;
+    select('#html').on('click', () => {
+      scatterplot.tooltip_html = (datum) => {
+        return `This is point number <span style="color:blue">${datum.ix}</span>`;
+      };
+    });
+    select('#jitterplus').on('click', () => {
+      jitterval = 0.02;
+      scatterplot.plotAPI({
+        encoding: {
+          jitter_radius: {
+            method: 'uniform',
+            constant: jitterval
+          },
+        },
+      });
+    });
+    select('#jitterminus').on('click', () => {
+      jitterval = 0.001;
+      scatterplot.plotAPI({
+        encoding: {
+          jitter_radius: {
+            method: 'uniform',
+            constant: jitterval
+          },
+        },
+      });
+    });
+    select('#changelink').on('click', () => {
+      scatterplot.plotAPI({
+        click_function: 'window.open("https://api.openalex.org/institutions/https://ror.org/" + datum.rorid1)',
+      });
+    });
+    const positions = [
+      {
+        field: 'x',
+        transform: 'literal',
+      },
+      {
+        field: 'y',
+        transform: 'literal',
+      },
+    ];
+    select('#flip').on('click', () => {
+      cycle += 1;
+      // let new_coding = prefs["encoding"]
+      // new_coding["color"] = colors[cycle % colors.length]
+      
+      const new_coding = {
+        encoding: {
+          color: colors[cycle % colors.length],
+          // x: positions[cycle % positions.length],
+          // y: positions[(cycle + 1) % positions.length],
+        }
+      };
+      console.log(new_coding)
+      scatterplot.plotAPI(new_coding);
+      //select button with the id 'flip' and change the caption to `color by avg_pub_year`
+      if (cycle % colors.length == 0) {
+        select('#flip').html('color by avg_pub_year');
+      } else if (cycle % colors.length == 1) {
+        select('#flip').html('color by work_count');
+      } else if (cycle % colors.length == 2) {
+        select('#flip').html('color by work_count');
+      } else if (cycle % colors.length == 3) {
+        select('#flip').html('color by avg_pub_year');
+      }
+      
+    });
+  </script>
+  

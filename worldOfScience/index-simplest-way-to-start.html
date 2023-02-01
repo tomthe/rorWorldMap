@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Deepscatter: World of Science</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- <link rel="stylesheet" href="./dist/deepscatter.css" />
+  <script src="./dist/deepscatter.js"></script> -->
+  <style>
+    /* body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    } */
+    #deepscatter {
+      width: 100vw;
+      height: 100vh;
+      /* height: 100%; */
+      min-height: -moz-available; /* WebKit-based browsers will ignore this. */
+      min-height: -webkit-fill-available; /* Mozilla-based browsers will ignore this. */
+      min-height: fill-available;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+  </style>
+</head>
+<!-- 
+  Hello! Assuming you've run a dataset with an x & y column
+  through quadfeather into a folder called tiles located in the
+  root of this repo, then this file should launch your scatter plot
+  exactly as is, no changes necessary.
+  It demonstrates the bare minimum needed to get started.
+  Checkout other examples for more advanced possibilities.
+-->
+
+<body>
+  <div id="deepscatter"></div>
+</body>
+
+<script type="module">
+  import Scatterplot from './dist/deepscatter.js';
+
+  const prefs = {
+    source_url: '/tiles3', // the output of the quadfeather tiling engine
+    max_points: 10000, // a full cap.
+    alpha: 5, // Target saturation for the full page.
+    zoom_balance: 0.23, // Rate at which points increase size. https://observablehq.com/@bmschmidt/zoom-strategies-for-huge-scatterplots-with-three-js
+    point_size: 2.1, // Default point size before application of size scaling
+    background_color: '#F0F0F0',
+    click_function: 'alert(datum.work_count + " works by " + datum.author + " in " + datum.year )',
+    // click_function: 'console.log(JSON.stringify(datum, undefined, 2))',
+
+    // encoding API based roughly on Vega Lite: https://vega.github.io/vega-lite/docs/encoding.html
+    encoding: {
+      x: {
+        field: 'x',
+        transform: 'literal',
+      },
+      y: {
+        field: 'y',
+        transform: 'literal',
+      },
+      color: {
+        field: 'avg_pub_year',
+        range: 'ylorrd',
+        domain: [2000, 2019]
+      },
+      size: {
+        field: 'work_count',
+        transform: 'sqrt',
+        domain: [0, 200000],
+        range: [1, 12],
+      },
+      jitter_radius: {
+        constant: .006,
+        method: 'normal'
+      }
+    },
+  };
+
+  const scatterplot = new Scatterplot('#deepscatter');
+  scatterplot.plotAPI(prefs);
+</script>
