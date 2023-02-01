@@ -57,7 +57,7 @@
   
   <script type="module">
     import Scatterplot from './src/deepscatter';
-    import { select } from 'd3-selection';
+    // import { select } from 'd3-selection';
     window.select = select; // For the click function below.
     let jitterval = 0.006;
     const prefs = {
@@ -67,7 +67,7 @@
       zoom_balance: 0.17, // Rate at which points increase size. https://observablehq.com/@bmschmidt/zoom-strategies-for-huge-scatterplots-with-three-js
       point_size: 2, // Default point size before application of size scaling
       background_color: '#EEEDDE',
-      // click_function: "select('#ident').html(JSON.stringify(datum, undefined, 2))",
+      // click_function: "document.getElementById('#ident').html(JSON.stringify(datum, undefined, 2))",
       click_function: 'window.open("https://ror.org/" + datum.rorid1)',
       
       // click_function: 'window.open(datum.url, "_blank")',
@@ -152,7 +152,7 @@
     scatterplot.on_zoom = (transform) => console.log('zoomed:', transform)
   
     let cycle = 0;
-    select('#jitter').on('change', (event) => {
+    document.getElementById('#jitter').addEventListener('change', () => {
       scatterplot.plotAPI({
         encoding: {
           jitter_radius: {
@@ -163,23 +163,24 @@
       });
     });
     let weird = false;
-    select('#html').on('click', () => {
+
+    document.getElementById('html').addEventListener('click', () => {
       scatterplot.tooltip_html = (datum) => {
         return `This is point number <span style="color:blue">${datum.ix}</span>`;
       };
     });
-    select('#jitterplus').on('click', () => {
-      jitterval = 0.02;
-      scatterplot.plotAPI({
+    document.getElementById('jitterplus').addEventListener('click', () => {
+      jitterval = jitterval + 0.02;
+      let opt = {
         encoding: {
           jitter_radius: {
             method: 'uniform',
             constant: jitterval
           },
         },
-      });
+      };
     });
-    select('#jitterminus').on('click', () => {
+    document.getElementById('#jitterminus').addEventListener('click', () => {
       jitterval = 0.001;
       scatterplot.plotAPI({
         encoding: {
@@ -190,7 +191,7 @@
         },
       });
     });
-    select('#changelink').on('click', () => {
+    document.getElementById('changelink').addEventListener('click', () => {
       scatterplot.plotAPI({
         click_function: 'window.open("https://api.openalex.org/institutions/https://ror.org/" + datum.rorid1)',
       });
@@ -205,7 +206,7 @@
         transform: 'literal',
       },
     ];
-    select('#flip').on('click', () => {
+    document.getElementById('flip').addEventListener('click', () => {
       cycle += 1;
       // let new_coding = prefs["encoding"]
       // new_coding["color"] = colors[cycle % colors.length]
@@ -221,13 +222,13 @@
       scatterplot.plotAPI(new_coding);
       //select button with the id 'flip' and change the caption to `color by avg_pub_year`
       if (cycle % colors.length == 0) {
-        select('#flip').html('color by avg_pub_year');
+        document.getElementById('flip').innerHTML = 'color by avg_pub_year';
       } else if (cycle % colors.length == 1) {
-        select('#flip').html('color by work_count');
+        document.getElementById('flip').innerHTML = 'color by work_count';
       } else if (cycle % colors.length == 2) {
-        select('#flip').html('color by work_count');
+        document.getElementById('flip').innerHTML = 'color by work_count';
       } else if (cycle % colors.length == 3) {
-        select('#flip').html('color by avg_pub_year');
+        document.getElementById('flip').innerHTML = 'color by avg_pub_year';
       }
       
     });
